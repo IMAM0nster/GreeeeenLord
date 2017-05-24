@@ -4,7 +4,7 @@ from pymongo import *
 from spider import *
 
 
-class Hupu_nongo:
+class Hupu_mongo:
     def __init__(self):
         self.client = MongoClient()
         self.db = self.client.test
