@@ -4,7 +4,7 @@ from pymongo import *
 from spider import *
 
 
-class Hupu_mongo:
+class HoopDB:
     def __init__(self):
         self.client = MongoClient()
         self.db = self.client.test
@@ -19,7 +19,7 @@ class Hupu_mongo:
 
     def insert_comments(self, comments):
         db = self.client.test
-        collection = db.teet_comment
+        collection = db.test_comment
         for c in comments:
             comment_content = c.content
             comment = {"author_id": c.author.user_id, "author_url": c.author.url,
@@ -32,17 +32,32 @@ class Hupu_mongo:
         collection = self.db.test_article
         return collection.find_one({"url": url})
 
+    def get_all_comments(self):
+        collection = self.db.test_comment
+        result = collection.find()
+        result_num = result.count()
+        return result, result_num
+
     def get_articles_of_particular_author(self, author_id):
         collection = self.db.test_article
         return collection.find({"author_id": author_id})
 
 
-hupu_articles = list()
-hupu_mongo = Hupu_nongo()
-# 将情感区前10页的帖子及其中所有帖子的第一页的评论全部爬下，并存入mongodb中
-for page in range(10):
-    hupu_articles.extend(index_spider("love", 1, 20))
-for hupu in hupu_articles:
-    hupu_comments = hupu.get_comments(1)
-    hupu_mongo.insert_comments(hupu_comments)
-hupu_mongo.insert_articles(hupu_articles)
+def prepare_comment_data():
+    hoop_articles = list()
+    hoop_db = HoopDB()
+    for page in range(10):
+        hoop_articles.extend(index_spider("love", 1, 20))
+    for hoop in hoop_articles:
+        hoop_comments = hoop.get_comments(1)
+        hoop_db.insert_comments(hoop_comments)
+    hoop_db.insert_articles(hoop_articles)
+
+
+# 将情感区前10页的帖子及其中所有帖子的第一页的评论全部爬下，并存入mongodb中，以备用于fast unfolding算法
+# prepare_comment_data()
+# hoop_db = HoopDB().db
+# collection = hoop_db.test_comment
+# comment = collection.find_one()
+# print comment
+# print comment["target_url"] == comment["author_url"]

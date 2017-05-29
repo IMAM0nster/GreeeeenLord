@@ -32,3 +32,16 @@ pip install均可安装
 并与spider.py同一个文件夹下,
 
 #######################################################################
+
+社区发现 （fast unfolding) By Fyy 2017/5/28
+
+#######################################################################
+
+WARNING:尚未测试过程序的正确性，谨慎运行！
+运行程序前请安装networkx以及matplotlib分别用于网络的管理以及绘制
+
+reference:
+http://networkx.readthedocs.io/en/networkx-1.11/overview.html
+http://blog.csdn.net/google19890102/article/details/48660239
+https://arxiv.org/pdf/0803.0476.pdf
+#######################################################################

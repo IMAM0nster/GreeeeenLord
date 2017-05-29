@@ -66,7 +66,7 @@ class Article:
     def __get_quote(tag):
         a = tag.find("a", "u")
         author = Author("", "")
-        author.url = a["href"]
+        author.url = a["href"][20:]  # skip https://my.hupu.com/
         author.user_id = a.string
         return author
 
@@ -87,7 +87,7 @@ class Article:
             # get author
             a = floor.find("a", "u")
             author = Author("", "")
-            author.url = a["href"]
+            author.url = a["href"][20:]
             author.user_id = a.string
             # get content
             d = floor.find("div", "quote-content")

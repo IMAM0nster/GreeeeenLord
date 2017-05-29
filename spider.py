@@ -58,7 +58,7 @@ def index_spider(section, page, number):
         author_info = tr.select('.u')
         if len(author_info):
             author.user_id = author_info[0].string
-            author.url = author_info[0]['href']
+            author.url = author_info[0]['href'][20:]
         else:
             continue
         # get title and url, and set the parameters of the article and append it to the articles list
@@ -106,4 +106,4 @@ def get_articles_by_author(author_url):
     return articles
 
 # 测试获得用户url为zhudongxiao的用户发过的所有帖子
-result = get_articles_by_author("zhudongxiao")
+# result = get_articles_by_author("zhudongxiao")
