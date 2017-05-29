@@ -55,7 +55,9 @@ def prepare_comment_data():
 
 
 # 将情感区前10页的帖子及其中所有帖子的第一页的评论全部爬下，并存入mongodb中，以备用于fast unfolding算法
+# print "插入评论以及帖子"
 # prepare_comment_data()
+# print "插入完毕"
 # hoop_db = HoopDB().db
 # collection = hoop_db.test_comment
 # comment = collection.find_one()

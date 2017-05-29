@@ -1,3 +1,4 @@
+# -*-coding:utf-8-*-
 __author__ = 'fyy'
 from community import Community
 import networkx
@@ -26,8 +27,8 @@ class FastUnfolding:
         delta_modularity = community_1_differ + community_2_differ
         if delta_modularity > 0:
             self.modularity += delta_modularity
-            community_1.modularity.update_modularity(community_1_new_modularity)
-            community_2.modularity.update_modularity(community_2_new_modularity)
+            community_1.update_modularity(community_1_new_modularity)
+            community_2.update_modularity(community_2_new_modularity)
             return True
         else:
             return False
@@ -37,33 +38,41 @@ class FastUnfolding:
         increasing = False
         for node in self.graph.nodes():
             for neighbor in self.graph.neighbors(node):
-                node_community = self.communities[self.graph.node(node)['cid']]
-                neighbor_community = self.communities[self.graph.node(neighbor)['cid']]
-                node_community.remove_node(node)
-                neighbor_community.add_node(node)
+                # node_community = self.communities[self.graph.node[node]['cid']]
+                # neighbor_community = self.communities[self.graph.node[neighbor]['cid']]
+                if self.graph.node[node]['cid'] == self.graph.node[neighbor]['cid']:
+                    continue
+                self.communities[self.graph.node[node]['cid']].remove_node(node)
+                self.communities[self.graph.node[neighbor]['cid']].add_node(node)
                 # 将节点加入邻居所在社区，若比较前后模块化插值的结果为False
                 # 放弃该操作
                 # 若为True，则将increasing标记为True
-                if not self.__increasing(node_community, neighbor_community):
-                    node_community.add(node)
-                    neighbor_community.remove(node)
+                if not self.__increasing(self.communities[self.graph.node[node]['cid']],
+                                         self.communities[self.graph.node[neighbor]['cid']]):
+                    self.communities[self.graph.node[node]['cid']].add_node(node)
+                    self.communities[self.graph.node[neighbor]['cid']].remove_node(node)
                 else:
+                    self.graph.node[node]['cid'] = self.graph.node[neighbor]['cid']
                     increasing = True
         return increasing
 
     def community_aggregation(self):
-        origin_communities_num = len(self.communities)
-        if origin_communities_num == 2:
-            return self.graph
+        # origin_communities_num = len(self.communities)
+        # if origin_communities_num == 2:
+        #     return self.graph
         new_graph = networkx.Graph()
         for community in self.communities:
             if len(community.nodes) == 0:
                 continue
-            new_graph.add_node(community.id)
+            new_graph.add_node(community.cid)
         for node in self.graph.nodes():
-            node_cid = self.graph.node(node)['cid']
+            node_cid = self.graph.node[node]['cid']
             for neighbor in self.graph.neighbors(node):
-                neighbor_cid = self.graph.node(neighbor)['cid']
+                neighbor_cid = self.graph.node[neighbor]['cid']
+                if neighbor_cid == node_cid:
+                    continue
                 weight = self.graph[node][neighbor]['weight']
                 new_graph.add_edge(node_cid, neighbor_cid, weight=weight)
-        return new_graph, networkx.number_of_nodes(new_graph) == origin_communities_num
+        community_number = networkx.number_of_nodes(new_graph)
+        print community_number
+        return new_graph, community_number < 50

@@ -1,3 +1,4 @@
+# -*-coding:utf-8-*-
 __author__ = 'fyy'
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -28,21 +29,32 @@ def build_network_from_db():
 
 def get_communities_result():
     graph = build_network_from_db()
-    finish = True
+    finish = False
+    fast_unfolding = FastUnfolding(graph)
     while not finish:
-        fast_unfolding = FastUnfolding(graph)
         while fast_unfolding.modularity_optimization():
             continue
         graph, finish = fast_unfolding.community_aggregation()
-    return fast_unfolding.communities
+        fast_unfolding = FastUnfolding(graph)
+    while fast_unfolding.modularity_optimization():
+        continue
+    return graph, fast_unfolding.communities
 
 
 def draw_communities(communities, graph):
-    pos = nx.spring_layout(graph)
-    size = len(communities)
+    pos = nx.random_layout(graph)
+    size = nx.number_of_nodes(graph)
     count = 0
     for community in communities:
         node_list = list(community.nodes)
-        nx.draw_networkx_nodes(graph, pos, node_list, node_size=10, node_color=str(count/size))
+        if not len(node_list):
+            continue
+        nx.draw_networkx_nodes(graph, pos, node_list, node_size=200, node_color='r')
+        count += 1
     nx.draw_networkx_edges(graph, pos, alpha=0.5)
     plt.show()
+
+print "测试社区发现"
+comment_graph, hoop_communities = get_communities_result()
+draw_communities(hoop_communities, comment_graph)
+print "测试完毕"
