@@ -9,7 +9,7 @@ import threading
 class HoopDB:
     def __init__(self):
         self.client = MongoClient()
-        self.db = self.client.test
+        self.db = self.client.test2
 
     def insert_articles(self, articles):
         collection = self.db.article
@@ -52,7 +52,7 @@ class HoopDB:
 def prepare_comment_data(section, start_page, end_page, number, comment_num):
     # hoop_articles = list()
     hoop_db = HoopDB()
-    for page in range(start_page, end_page):
+    for page in range(start_page, end_page+1):
         time.sleep(1)
         print "获取第", page, "页"
         hoop_articles = index_spider(section, page, number)
@@ -66,17 +66,10 @@ def prepare_comment_data(section, start_page, end_page, number, comment_num):
 # 将情感区前100页的帖子及其中所有帖子的第一页的评论全部爬下
 # 并存入mongodb中，以备用于fast unfolding算法
 # print "插入评论以及帖子"
-# prepare_comment_data("love-postdate", 1, 101, 40, 1)
+# prepare_comment_data("love-postdate", 1, 4, 40, 1)
 # print "插入完毕"
 # hoop_db = HoopDB().db
 # collection = hoop_db.comment
 # comment = collection.find_one()
 # print comment
 # print comment["target_url"] == comment["author_url"]
-
-
-h = HoopDB().db
-collection = h.test
-# comment = collection.find_one({"target_user": "白带拌香菜"})
-# print comment["target_url"]
-collection.find_one_and_update({"a": 1}, {"$set": {"b": 3}})

@@ -20,9 +20,10 @@ class Community:
             for neighbors in graph.neighbors(n):
                 if graph.node[neighbors]['cid'] == self.cid:
                     in_weight_tmp += graph[n][neighbors]['weight']
-                tot_weight_tmp += graph[n][neighbors]['weight']
+                else:
+                    tot_weight_tmp += graph[n][neighbors]['weight']
         in_weight_tmp /= 2
-        tot_weight_tmp /= 2
+        tot_weight_tmp += in_weight_tmp
         modularity_tmp = in_weight_tmp/2 - (tot_weight_tmp / 2) * (tot_weight_tmp / 2)
         return modularity_tmp
 

@@ -33,6 +33,11 @@ class FastUnfolding:
         else:
             return False
 
+    @staticmethod
+    def update_community(graph_copy, new_graph):
+        for node in graph_copy.nodes():
+            graph_copy.node[node]["cid"] = new_graph.node[graph_copy.node[node]["cid"]]["cid"]
+
     def modularity_optimization(self):
         # 标记变量，表示是否能够继续增大模块化程度
         increasing = False
@@ -61,10 +66,13 @@ class FastUnfolding:
         # if origin_communities_num == 2:
         #     return self.graph
         new_graph = networkx.Graph()
+        total_weight = 0.0
+
         for community in self.communities:
             if len(community.nodes) == 0:
                 continue
-            new_graph.add_node(community.cid)
+            new_graph.add_node(community.cid, cid=-1)
+
         for node in self.graph.nodes():
             node_cid = self.graph.node[node]['cid']
             for neighbor in self.graph.neighbors(node):
@@ -72,7 +80,31 @@ class FastUnfolding:
                 if neighbor_cid == node_cid:
                     continue
                 weight = self.graph[node][neighbor]['weight']
-                new_graph.add_edge(node_cid, neighbor_cid, weight=weight)
+                total_weight += weight
+                if (node_cid, neighbor_cid) in new_graph.edges() or (neighbor_cid, node_cid) in new_graph.edges():
+                    new_graph[node_cid][neighbor_cid]["weight"] += weight
+                else:
+                    new_graph.add_edge(node_cid, neighbor_cid, weight=weight)
+
+        # for node, neighbors in new_graph.adjacency_iter():
+        #     for neighbor, attr in neighbors.items():
+        #         attr['weight'] /= total_weight
+        for edge in new_graph.edges():
+            new_graph[edge[0]][edge[1]]["weight"] /= total_weight
         community_number = networkx.number_of_nodes(new_graph)
+        # for community_a in new_graph.nodes():
+        #     for community_b in new_graph.nodes():
+        #         if community_a == community_b:
+        #             continue
+        #         tmp_node_set = set()
+        #         tmp_node_set |= self.communities[community_a].nodes
+        #         tmp_node_set |= self.communities[community_b].nodes
+        #         weight = 0.0
+        #         for node_a in tmp_node_set:
+        #             for node_b in tmp_node_set:
+        #                 if (node_a, node_b) in self.graph.edges() or (node_b, node_a) in self.graph.edges():
+        #                     weight += self.graph[node_a][node_b]["weight"]
+        #         new_graph.add_edge(community_a, community_b, weight=weight)
+        # community_number = new_graph.number_of_nodes()
         print community_number
-        return new_graph, community_number < 50
+        return new_graph, community_number < 20 or community_number == len(self.communities)

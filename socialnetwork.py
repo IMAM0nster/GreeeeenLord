@@ -16,15 +16,17 @@ def build_network_from_db():
     for comment in comments:
         target_user = comment["target_url"]
         author_user = comment["author_url"]
-        # 自己回复自己的帖子不在分析范围之内
         if target_user == author_user:
+            total -= 1
             continue
         # 将边和点加入图中
         graph.add_nodes_from([target_user, author_user], cid=-1)
         if (target_user, author_user) in graph.edges() or (author_user, target_user) in graph.edges():
-            graph[target_user][author_user]['weight'] += 1.0/total
+            graph[target_user][author_user]['weight'] += 1.0
         else:
-            graph.add_edge(target_user, author_user, weight=1.0/total)
+            graph.add_edge(target_user, author_user, weight=1.0)
+    for edge in graph.edges():
+        graph[edge[0]][edge[1]]["weight"] /= total
     return graph
 
 
@@ -32,33 +34,64 @@ def get_communities_result():
     graph = build_network_from_db()
     finish = False
     fast_unfolding = FastUnfolding(graph)
+    while fast_unfolding.modularity_optimization():
+        continue
+    graph_copy = graph.copy()
+    graph, finish = fast_unfolding.community_aggregation()
+    fast_unfolding = FastUnfolding(graph)
     while not finish:
         while fast_unfolding.modularity_optimization():
             continue
+        fast_unfolding.update_community(graph_copy, graph)
         graph, finish = fast_unfolding.community_aggregation()
         fast_unfolding = FastUnfolding(graph)
     while fast_unfolding.modularity_optimization():
         continue
-    return graph, fast_unfolding.communities
+    return graph_copy
 
 
-def draw_communities(communities, graph):
-    pos = nx.random_layout(graph)
-    # size = nx.number_of_nodes(graph)
-    count = 0
-    for community in communities:
-        node_list = list(community.nodes)
-        if not len(node_list):
-            continue
-        nx.draw_networkx_nodes(graph, pos, node_list, node_size=200, node_color='r')
-        count += 1
-    nx.draw_networkx_edges(graph, pos, alpha=0.5)
-    plt.show()
+# def draw_communities(communities, graph):
+#     pos = nx.random_layout(graph)
+#     # size = nx.number_of_nodes(graph)
+#     count = 0
+#     for community in communities:
+#         node_list = list(community.nodes)
+#         if not len(node_list):
+#             continue
+#         nx.draw_networkx_nodes(graph, pos, node_list, node_size=200, node_color='r')
+#         count += 1
+#     nx.draw_networkx_edges(graph, pos, alpha=0.5)
+#     plt.show()
 
-# print "测试社区发现"
-# comment_graph, hoop_communities = get_communities_result()
-# draw_communities(hoop_communities, comment_graph)
-# print "测试完毕"
+def nodes_and_links(graph):
+    index_refer = dict()
+    # nodes = graph.nodes()
+    index = 0
+    node_file = open("graph.txt", "w")
+    node_file.write('{"nodes": [')
+    for node in graph.nodes():
+        index_refer[node] = index
+        index += 1
+        string = '{"category": ' + unicode(graph.node[node]["cid"]) + ', "name": "' + node + '"}'
+        node_file.write(str(string))
+        if index != nx.number_of_nodes(graph):
+            node_file.write(',')
+    node_file.write('],')
+    node_file.write('"links": [')
+    index = 0
+    for link in graph.edges():
+        index += 1
+        string = '{"source": ' + unicode(link[0]) + ', "target": ' + \
+                 unicode(link[1]) + '}'
+        node_file.write(str(string))
+        if index != nx.number_of_edges(graph):
+            node_file.write(',')
+    node_file.write(']}')
+
+print "测试社区发现"
+g = get_communities_result()
+nodes_and_links(g)
+print "测试完毕"
 
 
 
