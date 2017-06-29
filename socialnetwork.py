@@ -6,6 +6,7 @@ from hupudb import *
 from FastUnfolding import FastUnfolding
 
 
+# 测试代码，将所有的数据放入内存，在测试数据较小的情况下是可行的
 def build_network_from_db():
     hoop_db = HoopDB()
     data = hoop_db.get_all_comments()
@@ -43,7 +44,7 @@ def get_communities_result():
 
 def draw_communities(communities, graph):
     pos = nx.random_layout(graph)
-    size = nx.number_of_nodes(graph)
+    # size = nx.number_of_nodes(graph)
     count = 0
     for community in communities:
         node_list = list(community.nodes)
@@ -54,7 +55,11 @@ def draw_communities(communities, graph):
     nx.draw_networkx_edges(graph, pos, alpha=0.5)
     plt.show()
 
-print "测试社区发现"
-comment_graph, hoop_communities = get_communities_result()
-draw_communities(hoop_communities, comment_graph)
-print "测试完毕"
+# print "测试社区发现"
+# comment_graph, hoop_communities = get_communities_result()
+# draw_communities(hoop_communities, comment_graph)
+# print "测试完毕"
+
+
+
+

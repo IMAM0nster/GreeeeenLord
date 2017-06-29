@@ -11,8 +11,9 @@ def get_string_of_tag(tag, without_blockquote):
     content = ""
     if without_blockquote and tag.name == "blockquote":
         return content
-    for child in tag.children:
-        content += get_string_of_tag(child, without_blockquote)
+    if hasattr(type(tag), "children"):
+        for child in tag.children:
+            content += get_string_of_tag(child, without_blockquote)
     return content
 
 
@@ -54,6 +55,9 @@ class Article:
         html_doc = self.get_html_doc(1)
         soup = BeautifulSoup(html_doc, "lxml")
         content = ""
+        # bread_crumb = soup.find_all("div", class_="breadCrumbs", limit=1)
+        # if len(bread_crumb):
+        #     print "获取帖子所属板块"
         floors = soup.find_all("div", class_="floor")
         if len(floors):
             content_div = floors[0].find_all("div", class_="quote-content", limit=1)
@@ -65,6 +69,8 @@ class Article:
     @staticmethod
     def __get_quote(tag):
         a = tag.find("a", "u")
+        if a is None:
+            return None
         author = Author("", "")
         author.url = a["href"][20:]  # skip https://my.hupu.com/
         author.user_id = a.string
@@ -96,6 +102,9 @@ class Article:
             comment = Comment(author, self.url, content, self.author)
             if blockquote is not None:
                 quote_origin = self.__get_quote(blockquote)
+                if quote_origin is None:
+                    floor = floor.find_next_sibling("div", "floor")
+                    continue
                 comment.quote_origin = quote_origin
             comment_list.append(comment)
             floor = floor.find_next_sibling("div", "floor")
